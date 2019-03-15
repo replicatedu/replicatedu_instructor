@@ -7,3 +7,5 @@ edition = "2018"
 [dependencies]
 skeleton_parser = { git = "https://github.com/replicatedu/skeleton_parser.git" }
 test_runner = { git = "https://github.com/replicatedu/test_runner.git" }
+walkdir = "2.2.7"
+
