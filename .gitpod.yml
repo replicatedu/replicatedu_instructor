@@ -1,0 +1,8 @@
+image:
+  file: Dockerfile
+tasks:
+  - command: >
+      cargo check &&
+      cargo run
+ports:
+ - port: 8000
