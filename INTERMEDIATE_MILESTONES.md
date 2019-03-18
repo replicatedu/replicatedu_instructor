@@ -4,7 +4,7 @@ The following is a short interactive tutorial that uses key functionality of rel
 
 # Introduction
 
-The key problem I am trying to solve in replicatEdu was having one maintainable and testible code base that could be quickly split into solution and student assignment files.  This first deliverable attempts to capture some of that workflow.  This will be an interactive deliverable that will take about 5 to 10 minutes to complete.  
+The key problem I am trying to solve in replicatEdu was having one maintainable and testible code base that could be quickly split into solution and student assignment files.  This first deliverable attempts to capture some of that workflow.  This will be an interactive walkthrough that will take about 5 to 10 minutes to complete.  
 
 My final project will be the development an open modular educational platform focused on capturing reproducible lab, project and research environments I am now calling ReplicatEdu that allows for the development and execution of laboratory, project and research-based portions of computer science classes.  This platform will have two intended user groups, instructors/teaching assistants and students accomplishing those labs or creating their own research environments.  This portion covers how classes will be laid out and tested.
 
@@ -18,15 +18,15 @@ This workspace will be preconfigured to allow you to perform all the nessecary s
 
 # Compile the Code
 
-This first step is to compile the code which should already be in your main directory.  This is a rust application and can be compiled with
+This first step is to compile the code which should already be in your main directory.  Please make sure you are in the project directory.  This is a rust application and can be compiled with
 
 ```
 cargo build
 ```
 
-After compilation (ignore all the warnings), you can run the program with the following arguments
+After compilation (ignore all the warnings), you can run the program with the following arguments `#cargo run [class repo] [output directory]`
+
 ```
-#cargo run [class repo] [output directory]
 cargo run https://github.com/replicatedu/test_class.git test
 ```
 
@@ -36,12 +36,16 @@ This will perform several operations.  Annotated output is below:
 creating output directory: 
 	done
 ```
+
 This creates a new directory that the original class will be cloned into and the resultant student and solution workspaces will be created
+
 ```
 pulling class repository: 
 	done
 ```
-this downloads the class repository into the output directory
+
+This downloads the class repository into the output directory
+
 ```
 creating student and solution directories
 test/test_class/assignment_1/assignment1.sh
@@ -70,4 +74,4 @@ Please go inspect test_students and test_solution.  Test students is the files y
 
 # Future Work
 
-At this point, this is a prototype for a small portion of the overall project.  Eventually these split assignments will be packaged into reproducible environments that students will download using features of the platform still in development.
+At this point, this is a prototype for a small portion of the overall project.  Eventually these split assignments will be packaged into reproducible environments that students will download using features of the platform still in development.  The tests can also be marked in a variety of ways and can be seperated into student and instructor tests.  The next deliverable will focus on the student portion of this framework.
