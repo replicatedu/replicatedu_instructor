@@ -1,6 +1,6 @@
 # replicatEdu Intermediate Milestones
 
-The following is a short interactive tutorial that uses key functionality of relicatEdu to show how the instructor workflow will take place.  This does not reflect the final workflow, but will introduce serveral concepts that replicaatEdu will address in the final release.  The file https://github.com/replicatedu/replicatedu_lib/blob/master/src/main.rs and https://github.com/replicatedu/replicatedu_lib/blob/master/src/lib.rs was created for the intemediate milestones specifically to outline some of the workflows that the final project will be encompassing.
+The following is a short interactive tutorial that uses key functionality of relicatEdu to show how the instructor workflow will take place.  This does not reflect the final workflow, but will introduce serveral concepts that replicaatEdu will address in the final release.  The file https://github.com/replicatedu/replicatedu_lib/blob/master/src/main.rs was created for the intemediate milestones specifically to outline some of the workflows that the final project will be encompassing.
 
 # Introduction
 
