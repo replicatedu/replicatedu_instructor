@@ -4,16 +4,24 @@ use std::io::prelude::*;
 use std::process::{self, Command};
 
 extern crate fs_extra;
+extern crate hubcaps;
 extern crate skeleton_parser;
 extern crate test_runner;
-extern crate hubcaps;
+extern crate tokio;
 
-use fs_extra::copy_items;
-use fs_extra::dir::copy;
-use fs_extra::dir::CopyOptions;
-use skeleton_parser::{SkeletonCode, SkeletonDelimiters, return_default_delim};
+use term_painter::Color::*;
+use term_painter::ToStyle;
+
+use std::fs::OpenOptions;
+use std::io::Write;
+
+use hubcaps::{Credentials, Github, Result};
+use std::env;
+use tokio::runtime::Runtime;
+
+use hubcaps::repositories::{RepoOptions, RepoOptionsBuilder, Repositories};
+use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
 use test_runner::broker_test;
-use hubcaps::{Credentials, Github};
 
 //returns a command setup ready to run the tests
 fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
@@ -34,59 +42,95 @@ fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
     command.current_dir(command_directory);
     command
 }
-
+//Copy-Item C:\Logfiles -Destination C:\Drawings\Logs -Recurse
 pub fn duplicate_directory(src: &str, dest: &str) {
-    let options = CopyOptions::new(); //Initialize default values for CopyOptions
+    if cfg!(target_os = "windows") {
+        panic!("need to support windows");
+    }
 
-    // copy dir1 and file1.txt to target/dir1 and target/file1.txt
-    let mut from_paths = Vec::new();
-    from_paths.push(src);
-    copy_items(&from_paths, dest, &options).unwrap();
+    let owned_string: String = "cp -r ".to_owned();
+    let command = owned_string + src + " " + dest;
+    let mut c = command_wrapper(&command, ".");
+    c.output();
 }
 
-fn write_file(filepath:&str, contents: &str) -> std::io::Result<()> {
-    let mut file = File::open(filepath)?;
-    file.write_all(contents.as_bytes()).expect("Unable to write data");
-    Ok(())
+fn write_file(filepath: &str, contents: &str) {
+    match OpenOptions::new()
+        .create(true)
+        .write(true)
+        .append(true)
+        .open(filepath)
+    {
+        Ok(ref mut file) => {
+            writeln!(file, "{}",contents).unwrap();
+        }
+        Err(err) => {
+            panic!("Failed to open log file: {}", err);
+        }
+    }
 }
 
-pub fn replace_with_skeleton(filepath:&str){
+pub fn replace_with_skeleton(filepath: &str) {
     let contents = match fs::read_to_string(&filepath) {
         Ok(contents) => contents,
-        Err(_) => panic!("file does not exist"),
+        Err(_) => return,
     };
     let delims = return_default_delim();
     let parsed_code = SkeletonCode::new(delims, contents).unwrap();
-    write_file(filepath, &parsed_code.skeleton_code).unwrap();
+
+    write_file(filepath, &parsed_code.skeleton_code);
 }
 
-pub fn replace_with_solution(filepath:&str){
+pub fn replace_with_solution(filepath: &str) {
     let contents = match fs::read_to_string(&filepath) {
         Ok(contents) => contents,
-        Err(_) => panic!("file does not exist"),
+        Err(_) => return,
     };
     let delims = return_default_delim();
     let parsed_code = SkeletonCode::new(delims, contents).unwrap();
-    write_file(filepath, &parsed_code.solution_code).unwrap();
+
+    write_file(filepath, &parsed_code.solution_code);
 }
 
 pub struct GithubCommand {
-    token: String
+    token: String,
 }
 
-impl GithubCommand{
+impl GithubCommand {
     pub fn new(token: &str) -> GithubCommand {
-        let gh = GithubCommand{
+        let gh = GithubCommand {
             token: token.to_string(),
         };
         gh
     }
-    pub fn set_github_token(&self, name:&str) {
+    pub fn create_repo(&self, name: &str, description: &str) {
         let github = Github::new(
             "myreplicatedu/0.0.1",
             Credentials::Token(self.token.clone()),
         );
+        let ro = RepoOptions {
+            name: name.to_string(),
+            description: Some(description.to_string()),
+            homepage: Some("N/A".to_string()),
+            private: Some(false),
+            has_issues: Some(true),
+            has_wiki: Some(true),
+            has_downloads: Some(true),
+            team_id: Some(0),
+            auto_init: Some(false),
+            gitignore_template: Some("".to_string()),
+            license_template: Some("BSD".to_string()),
+        };
+
+        github.repos().create(&ro);
     }
+}
+
+pub fn pull_class_repo(repopath: &str, folder: &str) {
+    let owned_string: String = "git clone ".to_owned();
+    let command = owned_string + repopath;
+    let mut c = command_wrapper(&command, folder);
+    c.output();
 }
 
 #[cfg(test)]
