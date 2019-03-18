@@ -28,7 +28,7 @@ fn create_student(cloned_dir: &str, student_dir: &str) -> Vec<String> {
         if (entry != student_dir) {
             //let s = format!("writing student: {}",entry);
             //println!("{}", Yellow.paint(s));
-            replace_with_solution(&entry);
+            replace_with_skeleton(&entry);
             //println!("{}", Green.paint("\tdone"));
         }
         if (entry.contains("manifest.replicatedu")) {
@@ -64,8 +64,10 @@ fn create_solution(cloned_dir: &str, solution_dir: &str) -> Vec<String> {
 
 fn run_tests(test_files:Vec<String>){
     for file in test_files{
+        println!("{} {}", Yellow.paint("Running Test Files: "),Blue.paint(&file));
         let scores = run_test_file(file);
         dbg!(scores);
+        println!("{}", Green.paint("\tdone"));
     }
 }
 
@@ -106,9 +108,7 @@ fn main() {
     let solution_tests = create_solution(&cloned_dir_s, &solution_dir);
     let student_tests = create_student(&cloned_dir_s, &student_dir);
     println!("{}", Green.paint("\tdone"));
-    println!("{}", Yellow.paint("running tests: "));
     run_tests(solution_tests);
     run_tests(student_tests);
-    println!("{}", Green.paint("\tdone"));
-
+    
 }

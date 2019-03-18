@@ -62,6 +62,7 @@ fn write_file(filepath: &str, contents: &str) {
         .open(filepath)
     {
         Ok(ref mut file) => {
+            file.set_len(0);
             writeln!(file, "{}",contents).unwrap();
         }
         Err(err) => {
@@ -77,7 +78,7 @@ pub fn replace_with_skeleton(filepath: &str) {
     };
     let delims = return_default_delim();
     let parsed_code = SkeletonCode::new(delims, contents).unwrap();
-
+    dbg!(&parsed_code);
     write_file(filepath, &parsed_code.skeleton_code);
 }
 
@@ -86,9 +87,15 @@ pub fn replace_with_solution(filepath: &str) {
         Ok(contents) => contents,
         Err(_) => return,
     };
-    let delims = return_default_delim();
-    let parsed_code = SkeletonCode::new(delims, contents).unwrap();
 
+    let delims = SkeletonDelimiters {
+        skeleton_tag: "!_SKELETON".to_string(),
+        skeleton_delimiter: "#//!_ ".to_string(),
+        solution_tag: "!_SOLUTION".to_string(),
+    };
+
+    let parsed_code = SkeletonCode::new(delims, contents).unwrap();
+    dbg!(&parsed_code);
     write_file(filepath, &parsed_code.solution_code);
 }
 
