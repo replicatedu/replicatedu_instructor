@@ -11,6 +11,7 @@ My final project will be the development an open modular educational platform fo
 The link to my full proposal is here: https://docs.google.com/document/d/1e88dNjZeNQmzbyCx1qZkphCyfpnPW3tSV9dDnC8z8EQ/edit?usp=sharing
 
 Please launch the workspace by clicking the below button on logging in with your github account
+
 [![Open in Gitpod](http://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io#https://github.com/replicatedu/replicatedu_lib/)
 
 This workspace will be preconfigured to allow you to perform all the nessecary steps.  
@@ -69,4 +70,4 @@ Please go inspect test_students and test_solution.  Test students is the files y
 
 # Future Work
 
-At this point, this is a prototype for a small portion of the overall project
+At this point, this is a prototype for a small portion of the overall project.  Eventually these split assignments will be packaged into reproducible environments that students will download using features of the platform still in development.
