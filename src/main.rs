@@ -1,8 +1,7 @@
 use replicatedu_lib::{
     duplicate_directory, pull_class_repo, replace_with_skeleton, replace_with_solution,
-    GithubCommand,
 };
-use test_runner::{TestDoc, run_test_file};
+use test_runner::{run_test_file};
 use std::env;
 use std::fs::create_dir;
 use std::panic;
@@ -21,18 +20,18 @@ fn should_ignore(entry: &DirEntry) -> bool {
 fn create_student(cloned_dir: &str, student_dir: &str) -> Vec<String> {
     let mut tests = Vec::new();
     duplicate_directory(&cloned_dir, &student_dir);
-    let mut walker = WalkDir::new(student_dir).into_iter();
+    let walker = WalkDir::new(student_dir).into_iter();
     for entry in walker.filter_entry(|e| !should_ignore(e)) {
         let entry = entry.unwrap().path().display().to_string();
         println!("{}", entry);
-        if (entry != student_dir) {
+        if entry != student_dir {
             //let s = format!("writing student: {}",entry);
             //println!("{}", Yellow.paint(s));
             replace_with_skeleton(&entry);
             //println!("{}", Green.paint("\tdone"));
         }
-        if (entry.contains("manifest.replicatedu")) {
-            let mut s = entry.to_string();
+        if entry.contains("manifest.replicatedu") {
+            let s = entry.to_string();
             tests.push(s)
         }
     }
@@ -42,19 +41,19 @@ fn create_student(cloned_dir: &str, student_dir: &str) -> Vec<String> {
 fn create_solution(cloned_dir: &str, solution_dir: &str) -> Vec<String> {
     let mut tests = Vec::new();
     duplicate_directory(&cloned_dir, &solution_dir);
-    let mut walker = WalkDir::new(solution_dir).into_iter();
+    let walker = WalkDir::new(solution_dir).into_iter();
 
     for entry in walker.filter_entry(|e| !should_ignore(e)) {
         let entry = entry.unwrap().path().display().to_string();
         println!("{}", entry);
-        if (entry != solution_dir) {
+        if entry != solution_dir {
             //let s = format!("writing solution: {}",entry);
             //println!("{}", Yellow.paint(s));
             replace_with_solution(&entry);
             //println!("{}", Green.paint("\tdone"));
         }
-        if (entry.contains("manifest.replicatedu")) {
-            let mut s = entry.to_string();
+        if entry.contains("manifest.replicatedu") {
+            let s = entry.to_string();
             tests.push(s)
         }
     }

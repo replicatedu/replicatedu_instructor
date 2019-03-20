@@ -1,7 +1,7 @@
 use std::fs;
-use std::fs::File;
-use std::io::prelude::*;
-use std::process::{self, Command};
+
+
+use std::process::{Command};
 
 extern crate fs_extra;
 extern crate hubcaps;
@@ -9,19 +9,19 @@ extern crate skeleton_parser;
 extern crate test_runner;
 extern crate tokio;
 
-use term_painter::Color::*;
-use term_painter::ToStyle;
+
+
 
 use std::fs::OpenOptions;
 use std::io::Write;
 
-use hubcaps::{Credentials, Github, Result};
-use std::env;
-use tokio::runtime::Runtime;
+use hubcaps::{Credentials, Github};
 
-use hubcaps::repositories::{RepoOptions, RepoOptionsBuilder, Repositories};
+
+
+use hubcaps::repositories::{RepoOptions};
 use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
-use test_runner::broker_test;
+
 
 //returns a command setup ready to run the tests
 fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
