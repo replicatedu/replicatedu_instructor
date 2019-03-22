@@ -5,8 +5,8 @@ authors = ["alex <hortinstein@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-skeleton_parser = { git = "https://github.com/replicatedu/skeleton_parser.git" }
 test_runner = { git = "https://github.com/replicatedu/test_runner.git" }
+skeleton_parser = { git = "https://github.com/replicatedu/skeleton_parser.git" }
 walkdir = "2.2.7"
 hubcaps = "0.5"
 fs_extra = "1.1.0"

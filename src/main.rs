@@ -96,7 +96,7 @@ fn main() {
     let cloned_dir = walker.nth(1).unwrap();
     for entry in walker.filter_entry(|e| !should_ignore(e)) {
         let entry = entry.unwrap();
-        println!("{}", entry.path().display());
+        //println!("{}", entry.path().display());
     }
     let cloned_dir = cloned_dir.unwrap();
     let cloned_dir_s = cloned_dir.path().display().to_string();
