@@ -10,8 +10,6 @@ extern crate test_runner;
 extern crate tokio;
 
 
-
-
 use std::fs::OpenOptions;
 use std::io::Write;
 
@@ -21,6 +19,8 @@ use hubcaps::{Credentials, Github};
 
 use hubcaps::repositories::{RepoOptions};
 use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
+
+pub mod encryption;
 
 
 //returns a command setup ready to run the tests
@@ -136,6 +136,8 @@ pub fn pull_class_repo(repopath: &str, folder: &str) {
     let mut c = command_wrapper(&command, folder);
     c.output();
 }
+
+
 
 #[cfg(test)]
 mod tests {
