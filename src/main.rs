@@ -1,7 +1,7 @@
 use replicatedu_lib::{
     duplicate_directory, pull_class_repo, replace_with_skeleton, replace_with_solution,
 };
-use replicatedu_lib::encryption;
+
 use test_runner::{run_test_file};
 use std::env;
 use std::fs::create_dir;

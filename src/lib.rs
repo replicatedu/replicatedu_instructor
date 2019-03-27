@@ -17,8 +17,6 @@ extern crate test_runner;
 //use hubcaps::repositories::{RepoOptions};
 
 use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
-pub mod encryption;
-
 
 //returns a command setup ready to run the tests
 fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
