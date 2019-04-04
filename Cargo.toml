@@ -8,9 +8,9 @@ edition = "2018"
 test_runner = { git = "https://github.com/replicatedu/test_runner.git" }
 skeleton_parser = { git = "https://github.com/replicatedu/skeleton_parser.git" }
 walkdir = "2.2.7"
-hubcaps = "0.5"
+#hubcaps = "0.5"
 fs_extra = "1.1.0"
-tokio = "0.1"
+#tokio = "0.1"
 term-painter = "*"
 sodiumoxide = "*"
 hex = "*"

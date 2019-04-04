@@ -4,20 +4,20 @@ use std::fs;
 use std::process::{Command};
 
 extern crate fs_extra;
-extern crate hubcaps;
 extern crate skeleton_parser;
 extern crate test_runner;
-extern crate tokio;
+//extern crate hubcaps;
+//extern crate tokio;
+//use hubcaps::{Credentials, Github};
+//use hubcaps::repositories::{RepoOptions};
 
 
 use std::fs::OpenOptions;
 use std::io::Write;
 
-use hubcaps::{Credentials, Github};
 
 
 
-use hubcaps::repositories::{RepoOptions};
 use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
 
 pub mod encryption;
@@ -96,39 +96,39 @@ pub fn replace_with_solution(filepath: &str) {
     write_file(filepath, &parsed_code.solution_code);
 }
 
-pub struct GithubCommand {
-    token: String,
-}
+// pub struct GithubCommand {
+//     token: String,
+// }
 
-impl GithubCommand {
-    pub fn new(token: &str) -> GithubCommand {
-        let gh = GithubCommand {
-            token: token.to_string(),
-        };
-        gh
-    }
-    pub fn create_repo(&self, name: &str, description: &str) {
-        let github = Github::new(
-            "myreplicatedu/0.0.1",
-            Credentials::Token(self.token.clone()),
-        );
-        let ro = RepoOptions {
-            name: name.to_string(),
-            description: Some(description.to_string()),
-            homepage: Some("N/A".to_string()),
-            private: Some(false),
-            has_issues: Some(true),
-            has_wiki: Some(true),
-            has_downloads: Some(true),
-            team_id: Some(0),
-            auto_init: Some(false),
-            gitignore_template: Some("".to_string()),
-            license_template: Some("BSD".to_string()),
-        };
+// impl GithubCommand {
+//     pub fn new(token: &str) -> GithubCommand {
+//         let gh = GithubCommand {
+//             token: token.to_string(),
+//         };
+//         gh
+//     }
+//     pub fn create_repo(&self, name: &str, description: &str) {
+//         let github = Github::new(
+//             "myreplicatedu/0.0.1",
+//             Credentials::Token(self.token.clone()),
+//         );
+//         let ro = RepoOptions {
+//             name: name.to_string(),
+//             description: Some(description.to_string()),
+//             homepage: Some("N/A".to_string()),
+//             private: Some(false),
+//             has_issues: Some(true),
+//             has_wiki: Some(true),
+//             has_downloads: Some(true),
+//             team_id: Some(0),
+//             auto_init: Some(false),
+//             gitignore_template: Some("".to_string()),
+//             license_template: Some("BSD".to_string()),
+//         };
 
-        github.repos().create(&ro);
-    }
-}
+//         github.repos().create(&ro);
+//     }
+// }
 
 pub fn pull_class_repo(repopath: &str, folder: &str) {
     let owned_string: String = "git clone ".to_owned();
