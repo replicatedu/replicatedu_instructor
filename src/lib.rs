@@ -1,4 +1,6 @@
 use std::fs;
+use std::fs::OpenOptions;
+use std::io::Write;
 
 
 use std::process::{Command};
@@ -6,22 +8,7 @@ use std::process::{Command};
 extern crate fs_extra;
 extern crate skeleton_parser;
 extern crate test_runner;
-//extern crate hubcaps;
-//extern crate tokio;
-//use hubcaps::{Credentials, Github};
-//use hubcaps::repositories::{RepoOptions};
-
-
-use std::fs::OpenOptions;
-use std::io::Write;
-
-
-
-
 use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
-
-pub mod encryption;
-
 
 //returns a command setup ready to run the tests
 fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
