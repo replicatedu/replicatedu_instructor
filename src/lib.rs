@@ -8,7 +8,12 @@ use std::process::{Command};
 extern crate fs_extra;
 extern crate skeleton_parser;
 extern crate test_runner;
+extern crate class_crypto;
 use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
+use class_crypto::ClassCrypto;
+use class_crypto::convert_me_to_serializable;
+use class_crypto::participant_to_str;
+use class_crypto::serialization::Participant;
 
 //returns a command setup ready to run the tests
 fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
@@ -83,45 +88,46 @@ pub fn replace_with_solution(filepath: &str) {
     write_file(filepath, &parsed_code.solution_code);
 }
 
-// pub struct GithubCommand {
-//     token: String,
-// }
-
-// impl GithubCommand {
-//     pub fn new(token: &str) -> GithubCommand {
-//         let gh = GithubCommand {
-//             token: token.to_string(),
-//         };
-//         gh
-//     }
-//     pub fn create_repo(&self, name: &str, description: &str) {
-//         let github = Github::new(
-//             "myreplicatedu/0.0.1",
-//             Credentials::Token(self.token.clone()),
-//         );
-//         let ro = RepoOptions {
-//             name: name.to_string(),
-//             description: Some(description.to_string()),
-//             homepage: Some("N/A".to_string()),
-//             private: Some(false),
-//             has_issues: Some(true),
-//             has_wiki: Some(true),
-//             has_downloads: Some(true),
-//             team_id: Some(0),
-//             auto_init: Some(false),
-//             gitignore_template: Some("".to_string()),
-//             license_template: Some("BSD".to_string()),
-//         };
-
-//         github.repos().create(&ro);
-//     }
-// }
-
 pub fn pull_class_repo(repopath: &str, folder: &str) {
     let owned_string: String = "git clone ".to_owned();
     let command = owned_string + repopath;
     let mut c = command_wrapper(&command, folder);
     c.output();
+}
+
+//rsa key generation
+//ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa
+pub fn gen_rsa_keys(outdir:&str, coord_crypto:&ClassCrypto, instructor_crypto:&ClassCrypto){
+    let command = "rm -rf ./deploy_key* && \
+                   ssh-keygen -f ./deploy_key -N '' -t rsa && \
+                   echo \"paste the following into deploy keys\" && \
+                   cat deploy_key.pub &&
+                   ssh-add -y -K ./deploy_key";
+    let mut c = command_wrapper(&command, ".");
+    println!("{}",String::from_utf8_lossy(&c.output().unwrap().stdout));
+    let command = "rm -rf ./deploy_key* && \
+                   ssh-keygen -f ./deploy_key -N '' -t rsa && \
+                   echo \"paste the following into deploy keys\" && \
+                   cat deploy_key.pub &&
+                   ssh-add -y -K ./deploy_key";
+    let mut c = command_wrapper(&command, outdir);
+    println!("{}",String::from_utf8_lossy(&c.output().unwrap().stdout));
+    
+    //read the contents of the key and 
+    let deploy_key = match fs::read_to_string(outdir.to_string()+&"/deploy_key.pub".to_owned()) {
+        Ok(contents) => contents,
+        Err(_) => panic!("cannot read the deploy public key"),
+    };
+
+    let deploy_key_toml = coord_crypto.encrypt_to_toml( deploy_key.as_bytes().to_vec(), 
+                                                        instructor_crypto.return_pk());
+    write_file(&(outdir.to_string()+&"/deploy_keys.toml".to_owned()),
+                 &deploy_key_toml);
+    let coord_toml = participant_to_str( convert_me_to_serializable(coord_crypto));
+    let instructor_toml = participant_to_str( convert_me_to_serializable(instructor_crypto));
+    write_file(&(outdir.to_string()+&"/coord_keys.toml".to_owned()), &coord_toml);
+    write_file(&(outdir.to_string()+&"/instructor_keys.toml".to_owned()), &instructor_toml);
+
 }
 
 

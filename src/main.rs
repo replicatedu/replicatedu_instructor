@@ -1,5 +1,5 @@
 use replicatedu_lib::{
-    duplicate_directory, pull_class_repo, replace_with_skeleton, replace_with_solution,
+    duplicate_directory, pull_class_repo, replace_with_skeleton, replace_with_solution,gen_rsa_keys
 };
 
 use test_runner::{run_test_file};
@@ -10,6 +10,9 @@ use walkdir::{DirEntry, WalkDir};
 
 use term_painter::Color::*;
 use term_painter::ToStyle;
+
+use class_crypto::ClassCrypto;
+
 
 fn should_ignore(entry: &DirEntry) -> bool {
     entry
@@ -92,7 +95,7 @@ fn main() {
         "{}",
         Yellow.paint("creating student and solution directories")
     );
-    let mut walker = WalkDir::new("test").into_iter();
+    let mut walker = WalkDir::new(output).into_iter();
 
     let cloned_dir = walker.nth(1).unwrap();
     for entry in walker.filter_entry(|e| !should_ignore(e)) {
@@ -111,4 +114,15 @@ fn main() {
     run_tests(solution_tests);
     run_tests(student_tests);
     
+    let instructor_pair = ClassCrypto::new("instructor", true);
+    let class_cord_pair = ClassCrypto::new("coordination", true);
+
+    println!(
+        "{}",
+        Yellow.paint("generating student deployment RSA keys")
+    );
+    gen_rsa_keys(output,&class_cord_pair, &instructor_pair);
+
+
+
 }
