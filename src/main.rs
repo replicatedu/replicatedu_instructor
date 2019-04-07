@@ -7,12 +7,16 @@ use std::env;
 use std::fs::create_dir;
 use std::panic;
 use walkdir::{DirEntry, WalkDir};
+use git_wrapper;
+
+use std::fs;
 
 use term_painter::Color::*;
 use term_painter::ToStyle;
 
 use class_crypto::ClassCrypto;
-
+use std::fs::File;
+use std::io::prelude::*;
 
 fn should_ignore(entry: &DirEntry) -> bool {
     entry
@@ -123,6 +127,37 @@ fn main() {
     );
     gen_rsa_keys(output,&class_cord_pair, &instructor_pair);
 
+    let username = "hortinstein";
+    let password = env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
+    let student_repo_name = "student_example";
+    let solution_repo_name = "solution_example";
+    let path = "/tmp/";
+    
+    let database_key_path:String = "./".to_owned() + &output.to_string() +"/database_keys.toml";
+    let deploy_key_path:String ="./".to_owned() + &output.to_string() +"/deploy_key.toml";
+    let coord_key_path:String = "./".to_owned() +&output.to_string() +"/coord_keys.toml";
+    let student_dir_database:String = student_dir.to_string() + "/database_keys.toml";
+    let student_dir_deploy:String = student_dir.to_string() + "/deploy_key.toml";
+    let student_dir_coord:String = student_dir.to_string() + "/coord_keys.toml"; 
+    dbg!(&database_key_path);
+    fs::copy(database_key_path, &student_dir_database).expect("file copy failed");
+    dbg!(&deploy_key_path);
+    fs::copy(deploy_key_path, &student_dir_deploy).expect("file copy failed");
+    dbg!(&coord_key_path);
+    fs::copy(coord_key_path, &student_dir_coord).expect("file copy failed");
+        
+    //created the student and solution repo
+    git_wrapper::create_repo(username, &password, student_repo_name, path);
+    git_wrapper::create_repo(username, &password, solution_repo_name, path);
+    git_wrapper::init_repo( username, &password, student_repo_name,&student_dir);
+    git_wrapper::init_repo( username, &password, solution_repo_name,&solution_dir);
 
-
+    git_wrapper::create_repo(username, &password, "class_database", path);
+    let deploy_path:String = output.to_string() +"/database_key.pub";
+    let mut file = File::open(deploy_path).expect("key not there");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
+        .expect("error reading key");
+    git_wrapper::add_deploy_key(username, &password, "class_database", path, &contents);
+ 
 }
