@@ -11,6 +11,9 @@ this time around i will demonstrate the automation where the
 
 so I have several steps to automate the creation and management of a class
 
+
+let me show you my current github, you will see that no repositories have been created 
+
 the first thing I would like to show is the instructor classes being created again like last time
 
 this is an example of the instructor running the tool to automate the creation of the repositories that 

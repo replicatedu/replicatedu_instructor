@@ -133,21 +133,32 @@ fn main() {
     let solution_repo_name = "solution_example";
     let path = "/tmp/";
     
-    let database_key_path:String = "./".to_owned() + &output.to_string() +"/database_keys.toml";
-    let deploy_key_path:String ="./".to_owned() + &output.to_string() +"/deploy_key.toml";
-    let coord_key_path:String = "./".to_owned() +&output.to_string() +"/coord_keys.toml";
+    let database_key_path:String = "".to_owned() + &output.to_string() +"/database_keys.toml";
+    let database_key_priv_path:String = "".to_owned() + &output.to_string() +"/database_keys_priv.toml";
+    
+    let deploy_key_path:String ="".to_owned() + &output.to_string() +"/deploy_key.toml";
+    let coord_key_path:String = "".to_owned() +&output.to_string() +"/coord_keys.toml";
+    let inst_key_path:String = "".to_owned() +&output.to_string() +"/instructor_keys.toml";
+   
     let student_dir_database:String = student_dir.to_string() + "/database_keys.toml";
+    let student_dir_database_priv:String = student_dir.to_string() + "/database_keys_priv.toml";
     let student_dir_deploy:String = student_dir.to_string() + "/deploy_key.toml";
-    let student_dir_coord:String = student_dir.to_string() + "/coord_keys.toml"; 
+    let instructor_dir_coord:String = solution_dir.to_string() + "/coord_keys.toml"; 
+    let instructor_dir_instr:String = solution_dir.to_string() + "/instructor_keys.toml"; 
+    dbg!(&database_key_priv_path);
+    fs::copy(database_key_priv_path, &student_dir_database_priv).expect("file copy failed");
     dbg!(&database_key_path);
     fs::copy(database_key_path, &student_dir_database).expect("file copy failed");
     dbg!(&deploy_key_path);
     fs::copy(deploy_key_path, &student_dir_deploy).expect("file copy failed");
     dbg!(&coord_key_path);
-    fs::copy(coord_key_path, &student_dir_coord).expect("file copy failed");
-        
+    fs::copy(coord_key_path, &instructor_dir_coord).expect("file copy failed");
+    dbg!(&inst_key_path);
+    fs::copy(inst_key_path, &instructor_dir_instr).expect("file copy failed");
+   
+
     //created the student and solution repo
-    git_wrapper::create_repo(username, &password, student_repo_name, path);
+    git_wrapper::create_repo_pub(username, &password, student_repo_name, path);
     git_wrapper::create_repo(username, &password, solution_repo_name, path);
     git_wrapper::init_repo( username, &password, student_repo_name,&student_dir);
     git_wrapper::init_repo( username, &password, solution_repo_name,&solution_dir);

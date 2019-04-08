@@ -2,6 +2,7 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 
+use std::str;
 
 use std::process::{Command};
 
@@ -120,8 +121,8 @@ pub fn gen_rsa_keys(outdir:&str, coord_crypto:&ClassCrypto, instructor_crypto:&C
         Err(_) => panic!("cannot read the deploy public key"),
     };
 
-    let deploy_key_toml = coord_crypto.encrypt_to_toml( deploy_key.as_bytes().to_vec(), 
-                                                        instructor_crypto.return_pk());
+    let deploy_key_toml = instructor_crypto.encrypt_to_toml( deploy_key.as_bytes().to_vec(), 
+                                                        coord_crypto.return_pk());
     write_file(&(outdir.to_string()+&"/deploy_key.toml".to_owned()),
                  &deploy_key_toml);
 
@@ -132,10 +133,22 @@ pub fn gen_rsa_keys(outdir:&str, coord_crypto:&ClassCrypto, instructor_crypto:&C
         Err(_) => panic!("cannot read the database public key"),
     };
 
-    let database_key_toml = coord_crypto.encrypt_to_toml( database_key.as_bytes().to_vec(), 
-                                                        instructor_crypto.return_pk());
+    let database_key_toml = instructor_crypto.encrypt_to_toml( database_key.as_bytes().to_vec(), 
+                                                        coord_crypto.return_pk());
     write_file(&(outdir.to_string()+&"/database_keys.toml".to_owned()),
                  &database_key_toml);
+
+    //read the contents of the key and 
+    let database_key_priv = match fs::read_to_string(outdir.to_string()+&"/database_key".to_owned()) {
+        Ok(contents) => contents,
+        Err(_) => panic!("cannot read the database private key"),
+    };
+
+    let database_key_priv = instructor_crypto.encrypt_to_toml( database_key_priv.as_bytes().to_vec(), 
+                                                        coord_crypto.return_pk());
+    write_file(&(outdir.to_string()+&"/database_keys_priv.toml".to_owned()),
+                 &database_key_priv);
+
 
     let coord_toml = participant_to_str( convert_me_to_serializable(coord_crypto));
     let instructor_toml = participant_to_str( convert_me_to_serializable(instructor_crypto));
