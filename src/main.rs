@@ -137,7 +137,7 @@ fn main() {
     let mut url_str = String::new();
     //https://api.github.com/repos/hortinstein/fall2019student
     url_str.push_str(&format!(
-        "https://api.github.com/repos/hortinstein/fall2019student/{}/{}",
+        "https://api.github.com/repos/{}/{}",
         username, student_repo_name
     ));
     let api_addr_file:String = student_dir.to_string() + "/api_addr"; 
