@@ -15,6 +15,8 @@ use class_crypto::ClassCrypto;
 use class_crypto::convert_me_to_serializable;
 use class_crypto::participant_to_str;
 use class_crypto::serialization::Participant;
+use walkdir::{DirEntry, WalkDir};
+
 
 //returns a command setup ready to run the tests
 fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
@@ -107,13 +109,6 @@ pub fn gen_rsa_keys(outdir:&str, coord_crypto:&ClassCrypto, instructor_crypto:&C
                    ssh-add -y -K ./deploy_key";
     let mut c = command_wrapper(&command, outdir);
     println!("{}",String::from_utf8_lossy(&c.output().unwrap().stdout));
-    let command = "rm -rf ./database_key* && \
-                   ssh-keygen -f ./database_key -N '' -t rsa && \
-                   echo \"paste the following into deploy keys\" && \
-                   cat database_key.pub &&
-                   ssh-add -y -K ./database_key";
-    let mut c = command_wrapper(&command, outdir);
-    println!("{}",String::from_utf8_lossy(&c.output().unwrap().stdout));
     
     //read the contents of the key and 
     let deploy_key = match fs::read_to_string(outdir.to_string()+&"/deploy_key.pub".to_owned()) {
@@ -126,39 +121,63 @@ pub fn gen_rsa_keys(outdir:&str, coord_crypto:&ClassCrypto, instructor_crypto:&C
     write_file(&(outdir.to_string()+&"/deploy_key.toml".to_owned()),
                  &deploy_key_toml);
 
-
-    //read the contents of the key and 
-    let database_key = match fs::read_to_string(outdir.to_string()+&"/database_key.pub".to_owned()) {
-        Ok(contents) => contents,
-        Err(_) => panic!("cannot read the database public key"),
-    };
-
-    let database_key_toml = instructor_crypto.encrypt_to_toml( database_key.as_bytes().to_vec(), 
-                                                        coord_crypto.return_pk());
-    write_file(&(outdir.to_string()+&"/database_keys.toml".to_owned()),
-                 &database_key_toml);
-
-    //read the contents of the key and 
-    let database_key_priv = match fs::read_to_string(outdir.to_string()+&"/database_key".to_owned()) {
-        Ok(contents) => contents,
-        Err(_) => panic!("cannot read the database private key"),
-    };
-
-    let database_key_priv = instructor_crypto.encrypt_to_toml( database_key_priv.as_bytes().to_vec(), 
-                                                        coord_crypto.return_pk());
-    write_file(&(outdir.to_string()+&"/database_keys_priv.toml".to_owned()),
-                 &database_key_priv);
-
-
     let coord_toml = participant_to_str( convert_me_to_serializable(coord_crypto));
     let instructor_toml = participant_to_str( convert_me_to_serializable(instructor_crypto));
     write_file(&(outdir.to_string()+&"/coord_keys.toml".to_owned()), &coord_toml);
     write_file(&(outdir.to_string()+&"/instructor_keys.toml".to_owned()), &instructor_toml);
     
-
 }
 
+pub fn should_ignore(entry: &DirEntry) -> bool {
+    entry
+        .file_name()
+        .to_str()
+        .map(|s| s.starts_with(".git"))
+        .unwrap_or(false)
+}
 
+pub fn create_student(cloned_dir: &str, student_dir: &str) -> Vec<String> {
+    let mut tests = Vec::new();
+    duplicate_directory(&cloned_dir, &student_dir);
+    let walker = WalkDir::new(student_dir).into_iter();
+    for entry in walker.filter_entry(|e| !should_ignore(e)) {
+        let entry = entry.unwrap().path().display().to_string();
+        println!("{}", entry);
+        if entry != student_dir {
+            //let s = format!("writing student: {}",entry);
+            //println!("{}", Yellow.paint(s));
+            replace_with_skeleton(&entry);
+            //println!("{}", Green.paint("\tdone"));
+        }
+        if entry.contains("manifest.replicatedu") {
+            let s = entry.to_string();
+            tests.push(s)
+        }
+    }
+    tests
+}
+
+pub fn create_solution(cloned_dir: &str, solution_dir: &str) -> Vec<String> {
+    let mut tests = Vec::new();
+    duplicate_directory(&cloned_dir, &solution_dir);
+    let walker = WalkDir::new(solution_dir).into_iter();
+
+    for entry in walker.filter_entry(|e| !should_ignore(e)) {
+        let entry = entry.unwrap().path().display().to_string();
+        println!("{}", entry);
+        if entry != solution_dir {
+            //let s = format!("writing solution: {}",entry);
+            //println!("{}", Yellow.paint(s));
+            replace_with_solution(&entry);
+            //println!("{}", Green.paint("\tdone"));
+        }
+        if entry.contains("manifest.replicatedu") {
+            let s = entry.to_string();
+            tests.push(s)
+        }
+    }
+    tests
+}
 
 #[cfg(test)]
 mod tests {
