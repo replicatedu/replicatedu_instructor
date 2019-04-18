@@ -29,8 +29,8 @@ use test_runner::{run_test_file};
 fn run_tests(test_files:Vec<String>){
     for file in test_files{    
         println!("running test file {}",file);
-        let mut print_gag = Gag::stdout().unwrap();
-        let mut err_gag = Gag::stderr().unwrap();
+        let print_gag = Gag::stdout().unwrap();
+        let err_gag = Gag::stderr().unwrap();
         let scores = run_test_file(file);
         drop(print_gag);
         drop(err_gag);
@@ -56,13 +56,13 @@ fn main() {
     let password = &env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
 
     println!("{}", Yellow.paint("creating output directory: "));
-    let mut print_gag = Gag::stdout().unwrap();
+    let print_gag = Gag::stdout().unwrap();
     create_dir(output).unwrap();
     drop(print_gag);
     println!("{}", Green.paint("\tdone"));
 
     println!("{}", Yellow.paint("pulling class repository: "));
-    let mut print_gag = Gag::stdout().unwrap();
+    let print_gag = Gag::stdout().unwrap();
     pull_class_repo(class_repo, output);
     drop(print_gag);
     println!("{}", Green.paint("\tdone"));
@@ -70,12 +70,12 @@ fn main() {
         "{}",
         Yellow.paint("creating student and solution directories")
     );
-    let mut print_gag = Gag::stdout().unwrap();
+    let print_gag = Gag::stdout().unwrap();
     let mut walker = WalkDir::new(output).into_iter();
     //gets the new directory since it should be the only one in output
     let cloned_dir = walker.nth(1).unwrap();
     for entry in walker.filter_entry(|e| !should_ignore(e)) {
-        let entry = entry.unwrap();
+        let _entry = entry.unwrap();
     }
     let cloned_dir = cloned_dir.unwrap();
     let cloned_dir_s = cloned_dir.path().display().to_string();
@@ -106,7 +106,7 @@ fn main() {
         "{}",
         Yellow.paint("generating student deployment RSA keys")
     );
-    let mut print_gag = Gag::stdout().unwrap();
+    let print_gag = Gag::stdout().unwrap();
 
     gen_rsa_keys(output,&class_cord_pair, &instructor_pair);
 
@@ -151,7 +151,7 @@ fn main() {
         "{}",
         Yellow.paint("creating student solution and class repos on github")
     );
-    let mut print_gag = Gag::stdout().unwrap();
+    let print_gag = Gag::stdout().unwrap();
 
     //created the student and solution repo
     git_wrapper::create_repo_pub(username, &password, student_repo_name, path);
