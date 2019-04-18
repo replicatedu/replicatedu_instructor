@@ -49,7 +49,7 @@ pub fn duplicate_directory(src: &str, dest: &str) {
     c.output();
 }
 
-fn write_file(filepath: &str, contents: &str) {
+pub fn write_file(filepath: &str, contents: &str) {
     match OpenOptions::new()
         .create(true)
         .write(true)

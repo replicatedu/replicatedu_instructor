@@ -4,6 +4,7 @@ use replicatedu_lib::{
     should_ignore,
     create_student,
     create_solution,
+    write_file
 };
 
 use std::env;
@@ -131,6 +132,16 @@ fn main() {
     fs::copy(pub_naked_deploy, &instructor_dir_pub_naked_deploy).expect("file copy failed");
     fs::copy(priv_naked_deploy, &instructor_dir_priv_naked_deploy).expect("file copy failed");
     
+
+    //adding API address
+    let mut url_str = String::new();
+    //https://api.github.com/repos/hortinstein/fall2019student
+    url_str.push_str(&format!(
+        "https://api.github.com/repos/hortinstein/fall2019student/{}/{}",
+        username, student_repo_name
+    ));
+    let api_addr_file:String = student_dir.to_string() + "/api_addr"; 
+    write_file(&api_addr_file, &url_str);
 
     drop(print_gag);
     println!("{}", Green.paint("\tdone"));
