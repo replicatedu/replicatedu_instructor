@@ -1,5 +1,5 @@
 pub mod commands;
-pub mod error_daemon;
+pub mod grade_daemon;
 pub mod register_daemon;
 
 use commands::{
