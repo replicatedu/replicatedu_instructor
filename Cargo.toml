@@ -9,6 +9,7 @@ test_runner = { git = "https://github.com/replicatedu/test_runner.git" }
 skeleton_parser = { git = "https://github.com/replicatedu/skeleton_parser.git" }
 class_crypto = { git = "https://github.com/replicatedu/class_crypto.git" }
 git_wrapper = { git = "https://github.com/replicatedu/git_wrapper.git" }
+issue_database = { git = "https://github.com/replicatedu/issue_database.git" }
 walkdir = "2.2.7"
 fs_extra = "1.1.0"
 term-painter = "*"

@@ -1,5 +1,6 @@
 pub mod commands;
-pub mod daemon;
+pub mod error_daemon;
+pub mod register_daemon;
 
 use commands::{
     pull_class_repo,
@@ -46,8 +47,8 @@ fn run_tests(test_files:Vec<String>){
 pub fn main_create() {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() != 5 {
-        panic!("args: reposity_url output_folder student_repo_name solution_repo_name");
+    if args.len() != 6 {
+        panic!("args: --create [reposity_url] [output_folder] [student_repo_name] [solution_repo_name]");
     }
 
     //setup the variables needed for repo creation
