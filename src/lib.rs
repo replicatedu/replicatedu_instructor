@@ -1,190 +1,169 @@
+pub mod commands;
+pub mod daemon;
+
+use commands::{
+    pull_class_repo,
+    gen_rsa_keys,
+    should_ignore,
+    create_student,
+    create_solution,
+    write_file
+};
+
+use std::env;
+use std::fs::create_dir;
+use std::panic;
+use git_wrapper;
+
 use std::fs;
-use std::fs::OpenOptions;
-use std::io::Write;
 
-use std::str;
+use term_painter::Color::*;
+use term_painter::ToStyle;
 
-use std::process::{Command};
-
-extern crate fs_extra;
-extern crate skeleton_parser;
-extern crate test_runner;
-extern crate class_crypto;
-use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
 use class_crypto::ClassCrypto;
-use class_crypto::convert_me_to_serializable;
-use class_crypto::participant_to_str;
-use class_crypto::serialization::Participant;
+use std::fs::File;
+use std::io::prelude::*;
 use walkdir::{DirEntry, WalkDir};
 
+use gag::Gag;
 
-//returns a command setup ready to run the tests
-fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
-    let mut command = if cfg!(target_os = "windows") {
-        {
-            let mut c = Command::new("cmd");
-            c.args(&["/C", test_command]);
-            c
-        }
-    } else {
-        {
-            let mut c = Command::new("sh");
-            c.arg("-c");
-            c.arg(test_command);
-            c
-        }
-    };
-    command.current_dir(command_directory);
-    command
-}
-//Copy-Item C:\Logfiles -Destination C:\Drawings\Logs -Recurse
-pub fn duplicate_directory(src: &str, dest: &str) {
-    if cfg!(target_os = "windows") {
-        panic!("need to support windows");
-    }
+use test_runner::{run_test_file};
 
-    let owned_string: String = "cp -r ".to_owned();
-    let command = owned_string + src + " " + dest;
-    let mut c = command_wrapper(&command, ".");
-    c.output();
-}
-
-pub fn write_file(filepath: &str, contents: &str) {
-    match OpenOptions::new()
-        .create(true)
-        .write(true)
-        .append(true)
-        .open(filepath)
-    {
-        Ok(ref mut file) => {
-            file.set_len(0);
-            writeln!(file, "{}",contents).unwrap();
-        }
-        Err(err) => {
-            panic!("Failed to open log file: {}", err);
-        }
+fn run_tests(test_files:Vec<String>){
+    for file in test_files{
+        println!("running test file {}",file);
+        let print_gag = Gag::stdout().unwrap();
+        let err_gag = Gag::stderr().unwrap();
+        let scores = run_test_file(file);
+        drop(print_gag);
+        drop(err_gag);
+        println!("scores: {:?}",scores);
+        println!("{}", Green.paint("\tdone"));
     }
 }
 
-pub fn replace_with_skeleton(filepath: &str) {
-    let contents = match fs::read_to_string(&filepath) {
-        Ok(contents) => contents,
-        Err(_) => return,
-    };
-    let delims = return_default_delim();
-    let parsed_code = SkeletonCode::new(delims, contents).unwrap();
-    write_file(filepath, &parsed_code.skeleton_code);
-}
 
-pub fn replace_with_solution(filepath: &str) {
-    let contents = match fs::read_to_string(&filepath) {
-        Ok(contents) => contents,
-        Err(_) => return,
-    };
+pub fn main_create() {
+    let args: Vec<String> = env::args().collect();
 
-    let delims = SkeletonDelimiters {
-        skeleton_tag: "!_SKELETON".to_string(),
-        skeleton_delimiter: "#//!_ ".to_string(),
-        solution_tag: "!_SOLUTION".to_string(),
-    };
-    let parsed_code = SkeletonCode::new(delims, contents).unwrap();
-    write_file(filepath, &parsed_code.solution_code);
-}
+    if args.len() != 5 {
+        panic!("args: reposity_url output_folder student_repo_name solution_repo_name");
+    }
 
-pub fn pull_class_repo(repopath: &str, folder: &str) {
-    let owned_string: String = "git clone ".to_owned();
-    let mut command = owned_string + repopath;
-    command += " template && rm -rf template/.git"; 
-    let mut c = command_wrapper(&command, folder);
-    c.output();
-}
+    //setup the variables needed for repo creation
+    let class_repo = &args[1];
+    let output = &args[2];
+    let student_repo_name = &args[3];
+    let solution_repo_name = &args[4];
+    let username = &env::var("GITHUB_USERNAME").expect("set the GITHUB_USERNAME env");
+    let password = &env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
 
-//rsa key generation
-//ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa
-pub fn gen_rsa_keys(outdir:&str, coord_crypto:&ClassCrypto, instructor_crypto:&ClassCrypto){
-    let command = "rm -rf ./deploy_key* && \
-                   ssh-keygen -f ./deploy_key -N '' -t rsa && \
-                   echo \"paste the following into deploy keys\" && \
-                   cat deploy_key.pub &&
-                   ssh-add -y -K ./deploy_key";
-    let mut c = command_wrapper(&command, outdir);
-    println!("{}",String::from_utf8_lossy(&c.output().unwrap().stdout));
-    
-    //read the contents of the key and 
-    let deploy_key = match fs::read_to_string(outdir.to_string()+&"/deploy_key.pub".to_owned()) {
-        Ok(contents) => contents,
-        Err(_) => panic!("cannot read the deploy public key"),
-    };
+    println!("{}", Yellow.paint("creating output directory: "));
+    let print_gag = Gag::stdout().unwrap();
+    create_dir(output).unwrap();
+    drop(print_gag);
+    println!("{}", Green.paint("\tdone"));
 
-    let deploy_key_toml = instructor_crypto.encrypt_to_toml( deploy_key.as_bytes().to_vec(), 
-                                                        coord_crypto.return_pk());
-    write_file(&(outdir.to_string()+&"/deploy_key.toml".to_owned()),
-                 &deploy_key_toml);
-
-    let coord_toml = participant_to_str( convert_me_to_serializable(coord_crypto));
-    let instructor_toml = participant_to_str( convert_me_to_serializable(instructor_crypto));
-    write_file(&(outdir.to_string()+&"/coord_keys.toml".to_owned()), &coord_toml);
-    write_file(&(outdir.to_string()+&"/instructor_keys.toml".to_owned()), &instructor_toml);
-    
-}
-
-pub fn should_ignore(entry: &DirEntry) -> bool {
-    entry
-        .file_name()
-        .to_str()
-        .map(|s| s.starts_with(".git"))
-        .unwrap_or(false)
-}
-
-pub fn create_student(cloned_dir: &str, student_dir: &str) -> Vec<String> {
-    let mut tests = Vec::new();
-    duplicate_directory(&cloned_dir, &student_dir);
-    let walker = WalkDir::new(student_dir).into_iter();
+    println!("{}", Yellow.paint("pulling class repository: "));
+    let print_gag = Gag::stdout().unwrap();
+    pull_class_repo(class_repo, output);
+    drop(print_gag);
+    println!("{}", Green.paint("\tdone"));
+    println!(
+        "{}",
+        Yellow.paint("creating student and solution directories")
+    );
+    let print_gag = Gag::stdout().unwrap();
+    let mut walker = WalkDir::new(output).into_iter();
+    //gets the new directory since it should be the only one in output
+    let cloned_dir = walker.nth(1).unwrap();
     for entry in walker.filter_entry(|e| !should_ignore(e)) {
-        let entry = entry.unwrap().path().display().to_string();
-        println!("{}", entry);
-        if entry != student_dir {
-            //let s = format!("writing student: {}",entry);
-            //println!("{}", Yellow.paint(s));
-            replace_with_skeleton(&entry);
-            //println!("{}", Green.paint("\tdone"));
-        }
-        if entry.contains("manifest.replicatedu") {
-            let s = entry.to_string();
-            tests.push(s)
-        }
+        let _entry = entry.unwrap();
     }
-    tests
-}
+    let cloned_dir = cloned_dir.unwrap();
+    let cloned_dir_s = cloned_dir.path().display().to_string();
+    let student_dir = cloned_dir.path().display().to_string() + "_student";
+    let solution_dir = cloned_dir.path().display().to_string() + "_solution";
 
-pub fn create_solution(cloned_dir: &str, solution_dir: &str) -> Vec<String> {
-    let mut tests = Vec::new();
-    duplicate_directory(&cloned_dir, &solution_dir);
-    let walker = WalkDir::new(solution_dir).into_iter();
+    //create the student and solution directories then return the test manifests that are a part of them
+    let solution_tests = create_solution(&cloned_dir_s, &solution_dir);
+    let student_tests = create_student(&cloned_dir_s, &student_dir);
+    drop(print_gag);
+    println!("{}", Green.paint("\tdone"));
 
-    for entry in walker.filter_entry(|e| !should_ignore(e)) {
-        let entry = entry.unwrap().path().display().to_string();
-        println!("{}", entry);
-        if entry != solution_dir {
-            //let s = format!("writing solution: {}",entry);
-            //println!("{}", Yellow.paint(s));
-            replace_with_solution(&entry);
-            //println!("{}", Green.paint("\tdone"));
-        }
-        if entry.contains("manifest.replicatedu") {
-            let s = entry.to_string();
-            tests.push(s)
-        }
-    }
-    tests
-}
+   println!(
+        "{}",
+        Yellow.paint("running tests")
+    );
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn echo_hello() {
-        let mut c = command_wrapper("ls", "..");
-        dbg!(c.output());
-    }
+    run_tests(solution_tests);
+    run_tests(student_tests);
+
+    println!("{}", Green.paint("\tdone"));
+
+
+    let instructor_pair = ClassCrypto::new("instructor", true);
+    let class_cord_pair = ClassCrypto::new("coordination", true);
+
+    println!(
+        "{}",
+        Yellow.paint("generating student deployment RSA keys")
+    );
+    let print_gag = Gag::stdout().unwrap();
+
+    gen_rsa_keys(output,&class_cord_pair, &instructor_pair);
+
+
+    let path = "/tmp/";
+
+    let deploy_key_path:String ="".to_owned() + &output.to_string() +"/deploy_key.toml";
+    let coord_key_path:String = "".to_owned() +&output.to_string() +"/coord_keys.toml";
+    let inst_key_path:String = "".to_owned() +&output.to_string() +"/instructor_keys.toml";
+    let pub_naked_deploy:String = "".to_owned() +&output.to_string() +"/deploy_key.pub";
+    let priv_naked_deploy:String = "".to_owned() +&output.to_string() +"/deploy_key";
+
+    let instructor_dir_coord:String = solution_dir.to_string() + "/coord_keys.toml";
+    let instructor_dir_instr:String = solution_dir.to_string() + "/instructor_keys.toml";
+    let instructor_dir_pub_naked_deploy:String = solution_dir.to_string() + "/deploy_key.pub";
+    let instructor_dir_priv_naked_deploy:String = solution_dir.to_string() + "/deploy_key";
+
+    let student_dir_deploy:String = student_dir.to_string() + "/deploy_key.toml";
+
+    fs::copy(deploy_key_path, &student_dir_deploy).expect("file copy failed");
+    fs::copy(coord_key_path, &instructor_dir_coord).expect("file copy failed");
+    fs::copy(inst_key_path, &instructor_dir_instr).expect("file copy failed");
+    fs::copy(pub_naked_deploy, &instructor_dir_pub_naked_deploy).expect("file copy failed");
+    fs::copy(priv_naked_deploy, &instructor_dir_priv_naked_deploy).expect("file copy failed");
+
+
+    //adding API address
+    let mut url_str = String::new();
+    //https://api.github.com/repos/hortinstein/fall2019student
+    url_str.push_str(&format!(
+        "https://api.github.com/repos/{}/{}",
+        username, student_repo_name
+    ));
+    let api_addr_file:String = student_dir.to_string() + "/api_addr";
+    write_file(&api_addr_file, &url_str);
+
+    drop(print_gag);
+    println!("{}", Green.paint("\tdone"));
+
+
+    println!(
+        "{}",
+        Yellow.paint("creating student solution and class repos on github")
+    );
+    let print_gag = Gag::stdout().unwrap();
+
+    //created the student and solution repo
+    git_wrapper::create_repo_pub(username, &password, student_repo_name, path);
+    git_wrapper::create_repo(username, &password, solution_repo_name, path);
+    git_wrapper::init_repo( username, &password, student_repo_name,&student_dir);
+    git_wrapper::init_repo( username, &password, solution_repo_name,&solution_dir);
+
+    drop(print_gag);
+    println!("{}", Green.paint("\tdone"));
+
+
 }
