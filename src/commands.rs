@@ -1,24 +1,21 @@
-
-
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 
 use std::str;
 
-use std::process::{Command};
+use std::process::Command;
 
+extern crate class_crypto;
 extern crate fs_extra;
 extern crate skeleton_parser;
 extern crate test_runner;
-extern crate class_crypto;
-use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
-use class_crypto::ClassCrypto;
 use class_crypto::convert_me_to_serializable;
 use class_crypto::participant_to_str;
 use class_crypto::serialization::Participant;
+use class_crypto::ClassCrypto;
+use skeleton_parser::{return_default_delim, SkeletonCode, SkeletonDelimiters};
 use walkdir::{DirEntry, WalkDir};
-
 
 //returns a command setup ready to run the tests
 fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
@@ -60,7 +57,7 @@ pub fn write_file(filepath: &str, contents: &str) {
     {
         Ok(ref mut file) => {
             file.set_len(0);
-            writeln!(file, "{}",contents).unwrap();
+            writeln!(file, "{}", contents).unwrap();
         }
         Err(err) => {
             panic!("Failed to open log file: {}", err);
@@ -103,31 +100,38 @@ pub fn pull_class_repo(repopath: &str, folder: &str) {
 
 //rsa key generation
 //ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa
-pub fn gen_rsa_keys(outdir:&str, coord_crypto:&ClassCrypto, instructor_crypto:&ClassCrypto){
+pub fn gen_rsa_keys(outdir: &str, coord_crypto: &ClassCrypto, instructor_crypto: &ClassCrypto) {
     let command = "rm -rf ./deploy_key* && \
                    ssh-keygen -f ./deploy_key -N '' -t rsa && \
                    echo \"paste the following into deploy keys\" && \
                    cat deploy_key.pub &&
                    ssh-add -y -K ./deploy_key";
     let mut c = command_wrapper(&command, outdir);
-    println!("{}",String::from_utf8_lossy(&c.output().unwrap().stdout));
+    println!("{}", String::from_utf8_lossy(&c.output().unwrap().stdout));
 
     //read the contents of the key and
-    let deploy_key = match fs::read_to_string(outdir.to_string()+&"/deploy_key.pub".to_owned()) {
+    let deploy_key = match fs::read_to_string(outdir.to_string() + &"/deploy_key.pub".to_owned()) {
         Ok(contents) => contents,
         Err(_) => panic!("cannot read the deploy public key"),
     };
 
-    let deploy_key_toml = instructor_crypto.encrypt_to_toml( deploy_key.as_bytes().to_vec(),
-                                                        coord_crypto.return_pk());
-    write_file(&(outdir.to_string()+&"/deploy_key.toml".to_owned()),
-                 &deploy_key_toml);
+    let deploy_key_toml =
+        instructor_crypto.encrypt_to_toml(deploy_key.as_bytes().to_vec(), coord_crypto.return_pk());
+    write_file(
+        &(outdir.to_string() + &"/deploy_key.toml".to_owned()),
+        &deploy_key_toml,
+    );
 
-    let coord_toml = participant_to_str( convert_me_to_serializable(coord_crypto));
-    let instructor_toml = participant_to_str( convert_me_to_serializable(instructor_crypto));
-    write_file(&(outdir.to_string()+&"/coord_keys.toml".to_owned()), &coord_toml);
-    write_file(&(outdir.to_string()+&"/instructor_keys.toml".to_owned()), &instructor_toml);
-
+    let coord_toml = participant_to_str(convert_me_to_serializable(coord_crypto));
+    let instructor_toml = participant_to_str(convert_me_to_serializable(instructor_crypto));
+    write_file(
+        &(outdir.to_string() + &"/coord_keys.toml".to_owned()),
+        &coord_toml,
+    );
+    write_file(
+        &(outdir.to_string() + &"/instructor_keys.toml".to_owned()),
+        &instructor_toml,
+    );
 }
 
 pub fn should_ignore(entry: &DirEntry) -> bool {

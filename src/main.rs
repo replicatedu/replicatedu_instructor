@@ -1,6 +1,6 @@
 use replicatedu_instructor::grade_daemon;
-use replicatedu_instructor::register_daemon;
 use replicatedu_instructor::main_create;
+use replicatedu_instructor::register_daemon;
 use std::env;
 use std::thread;
 fn main() {
