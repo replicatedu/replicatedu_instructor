@@ -52,10 +52,10 @@ pub fn main_create() {
     }
 
     //setup the variables needed for repo creation
-    let class_repo = &args[1];
-    let output = &args[2];
-    let student_repo_name = &args[3];
-    let solution_repo_name = &args[4];
+    let class_repo = &args[2];
+    let output = &args[3];
+    let student_repo_name = &args[4];
+    let solution_repo_name = &args[5];
     let username = &env::var("GITHUB_USERNAME").expect("set the GITHUB_USERNAME env");
     let password = &env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
 
@@ -146,6 +146,10 @@ pub fn main_create() {
     ));
     let api_addr_file:String = student_dir.to_string() + "/api_addr";
     write_file(&api_addr_file, &url_str);
+
+    let api_addr_file:String = solution_dir.to_string() + "/api_addr";
+    write_file(&api_addr_file, &url_str);
+
 
     drop(print_gag);
     println!("{}", Green.paint("\tdone"));
