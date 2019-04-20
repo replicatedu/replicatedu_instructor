@@ -52,30 +52,38 @@ pub fn main() {
         let did_panic = panic::catch_unwind(|| {
             let open_regs = issue.get_open_registrations().expect("error getting api");
             for reg in &open_regs {
-                //dbg!(reg);
+                let reg_panic = panic::catch_unwind(|| {
+                    //dbg!(reg);
 
-                //get the students reponse and attempt to decrypt using the coord crypto
-                let student_message: Message =
-                    toml::from_str(&reg.body).expect("error reading toml");
-                let plain_message = coord_cryto
-                    .decrypt_from_toml(&reg.body)
-                    .expect("error decrypting");
-                println!(
-                    "{}",
-                    Green.paint("registration decrypted using coord keys added:")
-                );
-                println!(
-                    "username: {} repo: {}",
-                    reg.title,
-                    str::from_utf8(&plain_message).expect("err parsing utf8")
-                );
+                    //get the students reponse and attempt to decrypt using the coord crypto
+                    let student_message: Message =
+                        toml::from_str(&reg.body).expect("error reading toml");
+                    let plain_message = coord_cryto
+                        .decrypt_from_toml(&reg.body)
+                        .expect("error decrypting");
+                    println!(
+                        "{}",
+                        Green.paint("registration decrypted using coord keys added:")
+                    );
+                    println!(
+                        "username: {} repo: {}",
+                        reg.title,
+                        str::from_utf8(&plain_message).expect("err parsing utf8")
+                    );
 
-                //encrypt the confirm message using the instructor crypto
-                let confirmation =
-                    instructor_cryto.encrypt("confirm".as_bytes().to_vec(), student_message.pk);
-                //post a confirmation and close out the issue
-                issue.confirm_register(reg, &confirmation);
-                println!("confirmed registration");
+                    //encrypt the confirm message using the instructor crypto
+                    let confirmation =
+                        instructor_cryto.encrypt_to_toml("confirm".as_bytes().to_vec(), student_message.pk);
+                    //post a confirmation and close out the issue
+                    issue.confirm_register(reg, &confirmation);
+                    println!("confirmed registration");
+                });
+                if reg_panic.is_err() {
+                    println!(
+                        "{}",
+                        Red.paint("panic: invalid reg...trying next")
+                    );
+                }
             }
         });
         if did_panic.is_err() {
