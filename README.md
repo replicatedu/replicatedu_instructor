@@ -7,6 +7,11 @@ This is a library to construct a test class and run all the supporting functions
 
 # Usage
 
+To create a new repo 
+
+```
+cargo run -- -c https://github.com/replicatedu/test_class /tmp/test_out student sol
+```
 
 # Example
 
