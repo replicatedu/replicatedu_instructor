@@ -191,6 +191,6 @@ mod tests {
     #[test]
     fn echo_hello() {
         let mut c = command_wrapper("ls", "..");
-        dbg!(c.output());
+        c.output();
     }
 }
