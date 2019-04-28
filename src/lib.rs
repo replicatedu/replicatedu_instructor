@@ -142,7 +142,7 @@ pub fn main_create() {
         "{}",
         Yellow.paint("creating student solution and class repos on github")
     );
-    let print_gag = Gag::stdout().unwrap();
+   let print_gag = Gag::stdout().unwrap();
 
     //created the student and solution repo
     git_wrapper::create_repo_pub(username, &password, student_repo_name, path);
@@ -151,6 +151,6 @@ pub fn main_create() {
     git_wrapper::init_repo(username, &password, solution_repo_name, &solution_dir);
     git_wrapper::add_files(&student_dir);
     git_wrapper::add_files(&solution_dir);
-    //drop(print_gag);
+    drop(print_gag);
     println!("{}", Green.paint("\tdone"));
 }
