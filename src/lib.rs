@@ -149,8 +149,8 @@ pub fn main_create() {
     git_wrapper::create_repo(username, &password, solution_repo_name, path);
     git_wrapper::init_repo(username, &password, student_repo_name, &student_dir);
     git_wrapper::init_repo(username, &password, solution_repo_name, &solution_dir);
-    git_wrapper::add_files(&student_dir);
-    git_wrapper::add_files(&solution_dir);
+    //git_wrapper::add_files(&student_dir);
+    //git_wrapper::add_files(&solution_dir);
     drop(print_gag);
     println!("{}", Green.paint("\tdone"));
 }
