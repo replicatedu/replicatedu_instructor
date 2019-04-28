@@ -33,12 +33,12 @@ fn command_wrapper(test_command: &str, command_directory: &str) -> Command {
 }
 
 pub fn download_and_grade(repopath:String,) -> String{
-    let owned_string: String = "mkdir -p /tmp/grading && rm -rf /tmp/grading && git clone ".to_owned();
+    let owned_string: String = "rm -rf /tmp/grading && mkdir -p /tmp/grading && rm -rf /tmp/grading && git clone ".to_owned();
     let mut command = owned_string + &repopath;
-    command += " grading && mkdir output && docker run ";
+    command += " grading && mkdir -p output && docker run ";
     command += "--mount type=bind,source=\"$(pwd)\"/output,target=/tmp ";
     command += "--mount type=bind,source=\"$(pwd)\"/grading,target=/grading ";
-    command += "replicatedu_tester:demo_time bash -c \"cd /grading && test_runner manifest.replicatedu /tmp/test_results\"";
+    command += "hortinstein/replicatedu_tester:latest bash -c \"cd /grading && test_runner manifest.replicatedu /tmp/test_results\"";
     dbg!(&command);
     let mut c = command_wrapper(&command, "/tmp");
     //docker run --mount type=bind,source="$(pwd)"/output,target=/tmp --mount type=bind,source="$(pwd)"/grading,target=/grading replicatedu_tester:demo_time bash -c "cd /grading && test_runner manifest.replicatedu /tmp/test_results"
